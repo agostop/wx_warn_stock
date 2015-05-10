@@ -26,7 +26,7 @@ string GB2312ToUTF8(const char* pStrGB2312)
 size_t WriteCallback(char *contents, size_t size, size_t nmemb, string *userp)
 {
     //strcat(userp,contents);
-    userp->assign(contents);
+    userp->append(contents);
     return size*nmemb;
 }
 
@@ -45,7 +45,7 @@ string reg(const char *restr,string *data)
     }
 }
 
-void getSinaJS(vector<string> code ,map<string,vector<string>> &s_sum)
+void getSinaJS(vector<string> &code ,map<string,vector<string>> &s_sum)
 {
     CURL *curl;
     CURLcode res;
@@ -88,17 +88,16 @@ void getSinaJS(vector<string> code ,map<string,vector<string>> &s_sum)
           cerr << "the web page can not opened." << endl;
           exit(1);
       }
-      s_sum.swap(string_Process(data));
+      string_Process(data,s_sum);
 
       delete data;
-      curl_easy_cleanup(curl);
     }
 }
 //    cout << *data << endl;
 
-map<string,vector<string>> string_Process(string *data)
+int string_Process(string *data,map<string,vector<string>> &s_sum)
 {
-    map<string,vector<string>> s_sum;
+    //map<string,vector<string>> s_sum;
     string content;
     size_t m=0,n=0;
     string tmp;
@@ -107,7 +106,7 @@ map<string,vector<string>> string_Process(string *data)
     size_t x=0,y=0;
     string cont_cut;
 
-    content.swap(*data);
+    content.assign(*data);
 
     content=GB2312ToUTF8(content.c_str());
 
@@ -132,7 +131,7 @@ map<string,vector<string>> string_Process(string *data)
            s_sum[key]=strarr;
         }
     }
-    return s_sum;
+    return 0;
 
     /*
      * 验证部分
