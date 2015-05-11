@@ -1,4 +1,4 @@
-#include "gupiao.h"
+﻿#include "gupiao.h"
 #include "getconf.h"
 #include "sendtowx.h"
 
@@ -22,7 +22,6 @@ int main(int argc,char *argv[])
     map<string,vector<string>> userhash;
     map<string,vector<string>> s_map;
     string config;
-    string the_message;
    // string opt;
 
     //ifstream conf;
@@ -72,24 +71,32 @@ int main(int argc,char *argv[])
     conf.close();
     */
 
-    map<string,double> warn_val;
+    map<string,double> today_opening_val; //目前股票的开盘价格
+    map<string,double> code_warn_val;   //目前股票的警告线
+    map<string,double> code_jitter_val;  //目前股票的波动值
 
     getSinaJS(userstockcode,s_map);
 
     map<string,vector<string>>::iterator sbg=s_map.begin();
 
     for (;sbg!=s_map.end();++sbg)
-        warn_val.insert(make_pair(sbg->first,0.00));
+    {
+        today_opening_val.insert(make_pair(sbg->first,0.00));
+        code_warn_val.insert(make_pair(sbg->first,0.00));
+        code_jitter_val.insert(make_pair(sbg->first,0.00));
+    }
         //cout << sbg->first << endl;
 
-   double w_val=0.00;
+   double open_val=0.00;
    double curr_val=0.00;
-   double jitter=0.00;
-   double warn_line=0.20;
+   //double jitter=0.00;
+   //double warn_line=0.00;
    /*
    double red_line=0.20;
    double green_line=-0.20;
    */
+    string codename;
+    string the_message;
 
     while (1)
     {
@@ -99,20 +106,18 @@ int main(int argc,char *argv[])
 
         for (;sbg!=s_map.end();++sbg)
         {
-            //double w_val=warn_val[sbg->first];
-            if (warn_val[sbg->first]==0.00 )
-                convertFromString(warn_val[sbg->first],sbg->second[1]);
+            codename=sbg->first;
+            //if (today_opening_val[codename]==0.00 )  //初始化目前股票开盘价
+            convertFromString(today_opening_val[codename],sbg->second[1]);
+            convertFromString(curr_val,sbg->second[3]); //获取目前股票的当前价格
 
-            w_val=warn_val[sbg->first];
-            convertFromString(curr_val,sbg->second[3]);
+            open_val=today_opening_val[codename];
             // cout << curr_val << "\t\t" << warn_val << endl;
 
-            jitter = curr_val - w_val ;
+            code_jitter_val[codename] = curr_val - open_val ; //目前股票价格的波动值
 
-            cout << "curr_val\t" << curr_val << "\nwarn_val\t" << w_val << endl;
-            cout << "the warn val is : " << jitter<< endl;
-
-
+            cout << "curr_val\t" << curr_val << "\nwarn_val\t" << open_val << endl;
+            cout << "the jitter_val is : " << code_jitter_val[codename] << endl;
             /*
            the_message.append("test");
            if ( sendtoWX(the_message,"sh600795",userhash)!=0)
@@ -121,42 +126,42 @@ int main(int argc,char *argv[])
                exit(-1);
            }
            */
-            if ( ( jitter - warn_line) > 0.20 )
+            if ( ( code_jitter_val[codename] - code_warn_val[codename]) > 0.20 ) // 涨价幅度大于0.20
             {
 
-                the_message.append("注意! \"");
+                the_message.append(GB2312ToUTF8("注意! \""));
                 the_message.append(sbg->second[0]);
-                the_message.append("\"已经涨了");
-                the_message.append(ConvertToString(jitter));
-                the_message.append("毛钱，现在价格是\"");
+                the_message.append(GB2312ToUTF8("\"已经涨价了"));
+                the_message.append(ConvertToString(code_jitter_val[codename]));
+                the_message.append(GB2312ToUTF8("现在价格是：\""));
                 the_message.append(sbg->second[3]);
-                the_message.append("\n");
-               // if (sendtoWX(the_message,sbg->first,userhash))
-                if (sendtoWX(the_message,sbg->first,userhash)!=0)
+                the_message.append("\"");
+
+                if (sendtoWX(the_message,codename,userhash)!=0)
                     cerr << "send message failed !" << endl;
 
-                warn_line=jitter;
+                code_warn_val[codename]=code_jitter_val[codename];
                 the_message.clear();
 
-            }else if ( ( jitter - warn_line) < -0.20)
+            }else if ( ( code_jitter_val[codename] - code_warn_val[codename]) < -0.20 ) // 降价幅度大于-0.20
             {
-                the_message.append("注意! \"");
+                the_message.append(GB2312ToUTF8("注意! \""));
                 the_message.append(sbg->second[0]);
-                the_message.append("\"已经跌了");
-                the_message.append(ConvertToString(jitter));
-                the_message.append("毛钱，现在价格是\"");
+                the_message.append(GB2312ToUTF8("\"已经涨价了"));
+                the_message.append(ConvertToString(code_jitter_val[codename]));
+                the_message.append(GB2312ToUTF8("现在价格是：\""));
                 the_message.append(sbg->second[3]);
-                the_message.append("\"\n");
+                the_message.append("\"");
 
-                if (sendtoWX(the_message,sbg->first,userhash)!=0)
+                if (sendtoWX(the_message,codename,userhash)!=0)
                     cerr << "send message failed !" << endl;
 
-                warn_line=jitter;
-          //          warn_val[sbg->first]+=jitter;
-
+                code_warn_val[codename]=code_jitter_val[codename];
                 the_message.clear();
 
             }
+            Sleep(5000);
+
 
             /*
             the_message.append(sbg->first);

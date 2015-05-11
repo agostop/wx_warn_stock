@@ -1,4 +1,4 @@
-#include "sendtowx.h"
+﻿#include "sendtowx.h"
 #include "gupiao.h"
 using namespace std;
 using namespace rapidjson;
@@ -55,7 +55,6 @@ string Get_fakeid(
    for (;userandcode!=userhash.end();++userandcode)
    {
         vector<string>::iterator codeofone =(userandcode->second).begin();
-        //cout << userandcode->first << endl;
         for (;codeofone !=(userandcode->second).end();++codeofone)
         {
             if (codeofone->compare(stockcode)==0)
@@ -88,7 +87,7 @@ int sendtoWX(string &rawcontent,string stockcode , map<string,vector<string>> &u
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER,m_header);
     curl_easy_setopt(curl, CURLOPT_POST,1);
 
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "username=XXX&pwd=e8esdf643c9b5ffddca3d744edf859f5&imgcode=&f=json"); //这里把XXX换成登录的用户名，后面的pwd跟的是密码的md5值，用户名需要转换成httpcode字符串
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS,"username=XXX&pwd=esdfq5643c9b5ffddca3d744edf859f5&imgcode=&f=json") ; //这里把XXX换成登录的用户名，后面的pwd跟的是密码的md5值，用户名需要转换成httpcode字符串
 
 
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
